@@ -1,0 +1,5 @@
+.env
+Case_*.txt
+Bulk_Scan_*.csv
+__pycache__/
+

@@ -1,0 +1,3 @@
+google.com
+https://testsafebrowsing.appspot.com/s/malware.html
+github.com

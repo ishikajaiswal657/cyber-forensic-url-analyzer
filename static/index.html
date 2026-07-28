@@ -1,0 +1,2147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShieldCheck — Instant Phishing & URL Forensic Analysis</title>
+  <meta name="description" content="A free website where anyone can paste a suspicious link or upload a suspicious email and get a clear, explained verdict on whether it's likely phishing.">
+  
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ----------------------------------------------------
+       DESIGN SYSTEM & CSS VARIABLES
+       ---------------------------------------------------- */
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-secondary: #121824;
+      --bg-card: rgba(22, 30, 49, 0.75);
+      --bg-card-hover: rgba(30, 41, 67, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-focus: #3b82f6;
+      
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-bright: #ffffff;
+      
+      --color-primary: #2563eb;
+      --color-primary-hover: #3b82f6;
+      --color-primary-glow: rgba(59, 130, 246, 0.3);
+      --color-accent: #06b6d4;
+      --color-accent-glow: rgba(6, 182, 212, 0.25);
+      
+      --color-safe: #10b981;
+      --color-safe-bg: rgba(16, 185, 129, 0.12);
+      --color-safe-border: rgba(16, 185, 129, 0.35);
+      
+      --color-suspicious: #f59e0b;
+      --color-suspicious-bg: rgba(245, 158, 11, 0.12);
+      --color-suspicious-border: rgba(245, 158, 11, 0.35);
+      
+      --color-danger: #ef4444;
+      --color-danger-bg: rgba(239, 68, 68, 0.12);
+      --color-danger-border: rgba(239, 68, 68, 0.35);
+
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-heading: 'Outfit', sans-serif;
+      
+      --transition-speed: 0.25s;
+      --border-radius: 14px;
+    }
+
+    /* ----------------------------------------------------
+       BASE STYLING & RESET
+       ---------------------------------------------------- */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      background-image: 
+        radial-gradient(at 10% 20%, rgba(37, 99, 235, 0.1) 0px, transparent 50%),
+        radial-gradient(at 90% 80%, rgba(6, 182, 212, 0.08) 0px, transparent 50%);
+      background-attachment: fixed;
+      font-family: var(--font-body);
+      color: var(--text-main);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    a, button, input {
+      font-family: inherit;
+    }
+
+    /* Accessibility visible focus states */
+    *:focus-visible {
+      outline: 3px solid var(--color-accent);
+      outline-offset: 4px;
+    }
+
+    /* ----------------------------------------------------
+       LAYOUT & CONTAINERS
+       ---------------------------------------------------- */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      width: 100%;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 3.5rem;
+      height: 3.5rem;
+      color: var(--color-accent);
+      filter: drop-shadow(0 0 10px var(--color-accent-glow));
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text-bright);
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--text-bright) 40%, var(--color-accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+      font-weight: 400;
+    }
+
+    /* ----------------------------------------------------
+       TABS COMPONENT
+       ---------------------------------------------------- */
+    .tab-container {
+      display: flex;
+      justify-content: center;
+      background: rgba(18, 24, 38, 0.6);
+      padding: 0.35rem;
+      border-radius: 100px;
+      border: 1px solid var(--border-color);
+      width: fit-content;
+      margin: 0 auto 2.5rem auto;
+      backdrop-filter: blur(10px);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.75rem 1.75rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border-radius: 100px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+    }
+
+    .tab-btn.active {
+      background-color: var(--color-primary);
+      color: var(--text-bright);
+      box-shadow: 0 4px 15px var(--color-primary-glow);
+    }
+
+    .tab-btn svg {
+      width: 1.1rem;
+      height: 1.1rem;
+    }
+
+    /* ----------------------------------------------------
+       MAIN DASHBOARD PANEL (GLASSMORPHISM)
+       ---------------------------------------------------- */
+    .main-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      transition: border-color var(--transition-speed);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .view-section {
+      display: none;
+    }
+
+    .view-section.active {
+      display: block;
+      animation: fadeIn var(--transition-speed) ease-out forwards;
+    }
+
+    /* ----------------------------------------------------
+       FORMS & CONTROLS
+       ---------------------------------------------------- */
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.75rem;
+    }
+
+    /* URL Form Specifics */
+    .form-group-url {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .input-url {
+      flex-grow: 1;
+      background: rgba(11, 15, 25, 0.8);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 1rem 1.25rem;
+      font-size: 1rem;
+      transition: all var(--transition-speed);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .input-url:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-submit {
+      background: var(--color-primary);
+      color: var(--text-bright);
+      border: none;
+      border-radius: 8px;
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all var(--transition-speed);
+      box-shadow: 0 4px 12px var(--color-primary-glow);
+      white-space: nowrap;
+    }
+
+    .btn-submit:hover {
+      background: var(--color-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-submit:active {
+      transform: translateY(1px);
+    }
+
+    .btn-submit:disabled {
+      background: var(--border-color);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* Email Drag-Drop Area */
+    .drag-zone {
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: var(--border-radius);
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(18, 24, 38, 0.3);
+      transition: all var(--transition-speed) ease-in-out;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .drag-zone:hover, .drag-zone.dragover {
+      border-color: var(--color-accent);
+      background: rgba(6, 182, 212, 0.04);
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.05);
+    }
+
+    .drag-zone-icon {
+      width: 4rem;
+      height: 4rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      transition: color var(--transition-speed);
+    }
+
+    .drag-zone:hover .drag-zone-icon, .drag-zone.dragover .drag-zone-icon {
+      color: var(--color-accent);
+    }
+
+    .drag-zone-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-bright);
+      margin-bottom: 0.25rem;
+    }
+
+    .drag-zone-subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* File Metadata Display Panel */
+    .file-details-card {
+      display: none;
+      background: rgba(11, 15, 25, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      animation: fadeIn var(--transition-speed) ease-out forwards;
+    }
+
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .file-icon {
+      width: 1.75rem;
+      height: 1.75rem;
+      color: var(--color-accent);
+    }
+
+    .file-name {
+      font-weight: 500;
+      color: var(--text-bright);
+      font-size: 0.95rem;
+      word-break: break-all;
+    }
+
+    .file-size {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .btn-clear-file {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.25rem;
+      border-radius: 4px;
+      transition: all var(--transition-speed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-clear-file:hover {
+      color: var(--color-danger);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .btn-clear-file svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    /* ----------------------------------------------------
+       LOADING STATE SCREEN
+       ---------------------------------------------------- */
+    .loader-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1rem;
+      text-align: center;
+    }
+
+    .loader-ring {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      margin-bottom: 2rem;
+    }
+
+    .loader-ring-outer {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 4px solid var(--border-color);
+      border-top-color: var(--color-accent);
+      border-radius: 50%;
+      animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    }
+
+    .loader-ring-inner {
+      position: absolute;
+      width: 70%;
+      height: 70%;
+      top: 15%;
+      left: 15%;
+      border: 4px solid var(--border-color);
+      border-bottom-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite reverse;
+    }
+
+    .loader-icon {
+      position: absolute;
+      width: 30%;
+      height: 30%;
+      top: 35%;
+      left: 35%;
+      color: var(--color-accent);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .loader-title {
+      font-family: var(--font-heading);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 0.5rem;
+    }
+
+    .loader-subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .loader-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-width: 320px;
+      width: 100%;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-color);
+      padding-top: 1rem;
+    }
+
+    .loader-step-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-align: left;
+    }
+
+    .loader-step-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--border-color);
+    }
+
+    .loader-step-item.active {
+      color: var(--color-accent);
+      font-weight: 500;
+    }
+
+    .loader-step-item.active .loader-step-dot {
+      background: var(--color-accent);
+      box-shadow: 0 0 8px var(--color-accent);
+      animation: pulse 1s infinite;
+    }
+
+    .loader-step-item.done {
+      color: var(--color-safe);
+    }
+
+    .loader-step-item.done .loader-step-dot {
+      background: var(--color-safe);
+    }
+
+    /* ----------------------------------------------------
+       ERROR DISPLAY
+       ---------------------------------------------------- */
+    .error-card {
+      display: none;
+      background: var(--color-danger-bg);
+      border: 1px solid var(--color-danger-border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      color: var(--text-bright);
+      margin-bottom: 2rem;
+      animation: fadeIn var(--transition-speed) ease-out forwards;
+    }
+
+    .error-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-bottom: 0.35rem;
+      color: #f87171;
+    }
+
+    .error-header svg {
+      width: 1.4rem;
+      height: 1.4rem;
+    }
+
+    .error-desc {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      padding-left: 2.15rem;
+    }
+
+    /* ----------------------------------------------------
+       RESULTS DISPLAY LAYOUT
+       ---------------------------------------------------- */
+    .results-container {
+      display: none;
+      animation: fadeIn var(--transition-speed) ease-out forwards;
+    }
+
+    .results-action-bar {
+      display: flex;
+      justify-content: flex-start;
+      margin-bottom: 1.5rem;
+    }
+
+    .btn-back {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.5rem 1.25rem;
+      color: var(--text-main);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all var(--transition-speed);
+    }
+
+    .btn-back:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Verdict Banner Component */
+    .verdict-banner {
+      border-radius: var(--border-radius);
+      padding: 1.75rem 2rem;
+      margin-bottom: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .verdict-content {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .verdict-badge-icon {
+      width: 3.5rem;
+      height: 3.5rem;
+      flex-shrink: 0;
+    }
+
+    .verdict-text-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .verdict-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .verdict-value {
+      font-family: var(--font-heading);
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .verdict-score-box {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 8px;
+      padding: 0.75rem 1.25rem;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      min-width: 90px;
+    }
+
+    .verdict-score-num {
+      font-family: var(--font-heading);
+      font-size: 1.6rem;
+      font-weight: 800;
+      line-height: 1.1;
+      color: var(--text-bright);
+    }
+
+    .verdict-score-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    /* Safety Status Colors */
+    .status-safe {
+      background: var(--color-safe-bg);
+      border: 1px solid var(--color-safe-border);
+    }
+    .status-safe .verdict-value { color: var(--color-safe); }
+    .status-safe .verdict-badge-icon { color: var(--color-safe); filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.2)); }
+    .status-safe .verdict-score-box { border-color: var(--color-safe-border); }
+
+    .status-suspicious {
+      background: var(--color-suspicious-bg);
+      border: 1px solid var(--color-suspicious-border);
+    }
+    .status-suspicious .verdict-value { color: var(--color-suspicious); }
+    .status-suspicious .verdict-badge-icon { color: var(--color-suspicious); filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.2)); }
+    .status-suspicious .verdict-score-box { border-color: var(--color-suspicious-border); }
+
+    .status-danger {
+      background: var(--color-danger-bg);
+      border: 1px solid var(--color-danger-border);
+    }
+    .status-danger .verdict-value { color: var(--color-danger); }
+    .status-danger .verdict-badge-icon { color: var(--color-danger); filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.2)); }
+    .status-danger .verdict-score-box { border-color: var(--color-danger-border); }
+
+    /* Results Dashboard Grid */
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+
+    /* Detail Card Component Pattern */
+    .detail-card {
+      background: rgba(19, 26, 42, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: 1.5rem 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: all var(--transition-speed);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .detail-card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+      background: var(--bg-card-hover);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.75rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .card-title {
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-bright);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-title svg {
+      width: 1.25rem;
+      height: 1.25rem;
+      color: var(--color-accent);
+    }
+
+    .card-badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .card-badge.badge-green { background: rgba(16, 185, 129, 0.15); color: var(--color-safe); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .card-badge.badge-yellow { background: rgba(245, 158, 11, 0.15); color: var(--color-suspicious); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .card-badge.badge-red { background: rgba(239, 68, 68, 0.15); color: var(--color-danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+    .card-badge.badge-muted { background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid rgba(255, 255, 255, 0.1); }
+
+    .card-body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+    }
+
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.25rem 0;
+    }
+
+    .data-label {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .data-val {
+      color: var(--text-bright);
+      font-weight: 600;
+      text-align: right;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    /* Auth Badge Lists */
+    .auth-badges-group {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.25rem;
+    }
+
+    .auth-badge-pill {
+      flex: 1;
+      padding: 0.6rem;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      border: 1px solid var(--border-color);
+    }
+
+    .auth-badge-pill .pill-mechanism {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .auth-badge-pill.pass {
+      background: rgba(16, 185, 129, 0.08);
+      border-color: rgba(16, 185, 129, 0.25);
+      color: var(--color-safe);
+    }
+
+    .auth-badge-pill.fail {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.25);
+      color: var(--color-danger);
+    }
+
+    .auth-badge-pill.none {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: var(--border-color);
+      color: var(--text-muted);
+    }
+
+    /* VirusTotal score bars */
+    .vt-bar-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+    }
+
+    .vt-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+    }
+
+    .vt-bar-track {
+      height: 6px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .vt-bar-fill {
+      height: 100%;
+      border-radius: 100px;
+    }
+
+    /* Flag notes styling */
+    .notes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      list-style-type: none;
+    }
+
+    .notes-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      background: rgba(239, 68, 68, 0.05);
+      border: 1px solid rgba(239, 68, 68, 0.15);
+      border-radius: 6px;
+      padding: 0.6rem 0.8rem;
+      font-size: 0.85rem;
+      color: var(--text-main);
+    }
+
+    .notes-item-icon {
+      width: 1rem;
+      height: 1rem;
+      color: var(--color-danger);
+      flex-shrink: 0;
+      margin-top: 0.15rem;
+    }
+
+    .notes-empty {
+      color: var(--color-safe);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0;
+    }
+
+    .notes-empty svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    /* ----------------------------------------------------
+       INTERACTIVE EMBEDDED URLS TABLE CARD
+       ---------------------------------------------------- */
+    .urls-card {
+      grid-column: 1 / -1;
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    .links-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+
+    .links-table th, .links-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .links-table th {
+      background: rgba(255, 255, 255, 0.02);
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    .links-table tbody tr {
+      cursor: pointer;
+      transition: background var(--transition-speed);
+    }
+
+    .links-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .links-table .url-cell {
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--color-accent);
+      font-weight: 500;
+    }
+
+    .links-table .btn-inspect {
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid var(--color-accent-glow);
+      color: var(--color-accent);
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all var(--transition-speed);
+    }
+
+    .links-table .btn-inspect:hover {
+      background: var(--color-accent);
+      color: var(--bg-primary);
+    }
+
+    .empty-links-state {
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* ----------------------------------------------------
+       SUB-SCAN MODAL POPUP
+       ---------------------------------------------------- */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      animation: fadeIn var(--transition-speed) ease-out forwards;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      width: 100%;
+      max-width: 720px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      animation: slideUp var(--transition-speed) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      padding: 1.25rem 1.75rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-bright);
+    }
+
+    .btn-close-modal {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.35rem;
+      border-radius: 6px;
+      transition: all var(--transition-speed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-close-modal:hover {
+      color: var(--text-bright);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-close-modal svg {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+
+    .modal-body {
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* ----------------------------------------------------
+       ANIMATIONS
+       ---------------------------------------------------- */
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.08); opacity: 0.7; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* ----------------------------------------------------
+       FOOTER
+       ---------------------------------------------------- */
+    footer {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border-color);
+      margin-top: auto;
+      background: rgba(11, 15, 25, 0.5);
+    }
+
+    footer p {
+      max-width: 600px;
+      margin: 0 auto 0.5rem auto;
+    }
+
+    footer .policy-disclaimer {
+      font-size: 0.75rem;
+      color: rgba(156, 163, 175, 0.55);
+    }
+
+    /* ----------------------------------------------------
+       RESPONSIVE DESIGN BREAKPOINTS
+       ---------------------------------------------------- */
+    @media (max-width: 768px) {
+      .brand-title {
+        font-size: 2rem;
+      }
+      .brand-logo {
+        width: 2.8rem;
+        height: 2.8rem;
+      }
+      .main-card {
+        padding: 1.5rem;
+      }
+      .form-group-url {
+        flex-direction: column;
+      }
+      .btn-submit {
+        justify-content: center;
+        width: 100%;
+      }
+      .verdict-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1.25rem 1.5rem;
+        gap: 1.25rem;
+      }
+      .verdict-score-box {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- BRAND HEADER -->
+    <header>
+      <a href="/" class="brand" aria-label="ShieldCheck Home">
+        <svg class="brand-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>
+        <span class="brand-title">ShieldCheck</span>
+      </a>
+      <p class="brand-subtitle">Paste a suspicious URL or upload an email to verify security risks and spot potential phishing immediately.</p>
+    </header>
+
+    <!-- NAVIGATION TABS -->
+    <nav class="tab-container" role="tablist">
+      <button id="tab-url" class="tab-btn active" role="tab" aria-selected="true" aria-controls="pane-url">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        </svg>
+        Check a URL
+      </button>
+      <button id="tab-email" class="tab-btn" role="tab" aria-selected="false" aria-controls="pane-email">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+        Check an Email
+      </button>
+    </nav>
+
+    <!-- ERROR NOTIFICATION BANNER -->
+    <div id="error-banner" class="error-card" role="alert">
+      <div class="error-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>Analysis Failure</span>
+      </div>
+      <div id="error-message" class="error-desc"></div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="main-card">
+
+      <!-- ====================================================
+           URL INPUT FORM SECTION
+           ==================================================== -->
+      <section id="pane-url" class="view-section active" role="tabpanel" aria-labelledby="tab-url">
+        <h2 class="section-title">URL Scanner</h2>
+        <p class="section-desc">Paste a web link below. We will analyze the domain age, SSL status, hosting attributes, URL structure, and run security reputation lookups.</p>
+        
+        <form id="form-url" onsubmit="handleUrlSubmit(event)">
+          <div class="form-group-url">
+            <input 
+              type="text" 
+              id="input-url-value" 
+              class="input-url" 
+              placeholder="e.g., example-security-login.com/verify" 
+              aria-label="Suspicious link URL" 
+              required
+            >
+            <button type="submit" id="btn-url-submit" class="btn-submit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 1.2rem; height: 1.2rem;">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              Scan URL
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ====================================================
+           EMAIL UPLOAD FORM SECTION
+           ==================================================== -->
+      <section id="pane-email" class="view-section" role="tabpanel" aria-labelledby="tab-email">
+        <h2 class="section-title">Email File Inspector</h2>
+        <p class="section-desc">Upload or drag in a saved email file (with a <code>.eml</code> extension) to parse headers for spoofing, verify DMARC/SPF parameters, check urgency indicators, scan attachments, and analyze embedded links.</p>
+        
+        <div id="email-drop-zone" class="drag-zone" onclick="triggerEmailFilePicker()">
+          <svg class="drag-zone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <p class="drag-zone-title">Drag & drop your .eml file here</p>
+          <p class="drag-zone-subtitle">or click anywhere to browse files</p>
+          <input type="file" id="email-file-input" style="display: none;" accept=".eml" onchange="handleEmailFileSelected(event)">
+        </div>
+
+        <!-- SELECTED FILE DETAILS PANEL -->
+        <div id="file-card" class="file-details-card">
+          <div class="file-info">
+            <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <div>
+              <div id="file-display-name" class="file-name">filename.eml</div>
+              <div id="file-display-size" class="file-size">12.5 KB</div>
+            </div>
+          </div>
+          <button class="btn-clear-file" onclick="clearSelectedEmailFile(event)" aria-label="Remove selected file">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <button id="btn-email-submit" class="btn-submit" style="width: 100%; justify-content: center;" onclick="handleEmailSubmit()" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 1.2rem; height: 1.2rem;">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Analyze Email File
+        </button>
+      </section>
+
+      <!-- ====================================================
+           SCAN LOADING INTERACTION SCREEN
+           ==================================================== -->
+      <section id="pane-loading" class="loader-container">
+        <div class="loader-ring">
+          <div class="loader-ring-outer"></div>
+          <div class="loader-ring-inner"></div>
+          <svg class="loader-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <h3 id="loader-status" class="loader-title">Initiating Forensic Engine...</h3>
+        <p class="loader-subtitle">Please wait, performing deep packet and register analysis (usually takes under 10 seconds).</p>
+        
+        <div class="loader-steps">
+          <div class="loader-step-item id-step-1 active">
+            <div class="loader-step-dot"></div>
+            <span>Parsing input structure</span>
+          </div>
+          <div class="loader-step-item id-step-2">
+            <div class="loader-step-dot"></div>
+            <span>Gathering network and DNS records</span>
+          </div>
+          <div class="loader-step-item id-step-3">
+            <div class="loader-step-dot"></div>
+            <span>Querying security vendors</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================
+           RESULTS PANEL
+           ==================================================== -->
+      <section id="pane-results" class="results-container">
+        
+        <!-- Back Button Row -->
+        <div class="results-action-bar">
+          <button class="btn-back" onclick="resetFormState()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 1.1rem; height: 1.1rem;">
+              <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+            </svg>
+            Scan Another Item
+          </button>
+        </div>
+
+        <!-- Shared Verdict Banner Card -->
+        <div id="verdict-banner-card" class="verdict-banner">
+          <div class="verdict-content">
+            <!-- Icon placeholder -->
+            <div id="verdict-icon-container"></div>
+            <div class="verdict-text-group">
+              <span class="verdict-label">Phishing Verdict</span>
+              <span id="verdict-display-title" class="verdict-value">SAFE</span>
+            </div>
+          </div>
+          
+          <div class="verdict-score-box">
+            <div id="verdict-display-score" class="verdict-score-num">0</div>
+            <div class="verdict-score-label">Risk Score</div>
+          </div>
+        </div>
+
+        <!-- Details Grid Layout -->
+        <div id="results-details-layout" class="results-grid">
+          <!-- Dynamically populated detail cards will be appended here -->
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- DETAILS MODAL POPUP FOR EMBEDDED URLS -->
+  <div id="inspect-modal" class="modal-overlay" onclick="closeInspectModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Embedded Link Scan Details</h3>
+        <button class="btn-close-modal" onclick="toggleInspectModal(false)" aria-label="Close modal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div id="modal-body-container" class="modal-body">
+        <!-- Render url detail cards dynamically inside modal -->
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>🛡️ ShieldCheck operates fully in memory. Uploaded files and scanned links are evaluated in real-time and never written to persistent disk databases.</p>
+    <p class="policy-disclaimer">Disclaimer: ShieldCheck offers risk assessments based on common cybersecurity heuristics and reputation API lookups. It is not an absolute certificate of guarantee.</p>
+  </footer>
+
+  <!-- ====================================================
+       FRONTEND CONTROLLER JAVASCRIPT
+       ==================================================== -->
+  <script>
+    // Global active states
+    let selectedFile = null;
+    let scanTimeout = null;
+    let loadingInterval = null;
+
+    // Tab Switching Configuration
+    const tabs = [
+      { btn: document.getElementById('tab-url'), pane: document.getElementById('pane-url') },
+      { btn: document.getElementById('tab-email'), pane: document.getElementById('pane-email') }
+    ];
+
+    tabs.forEach(tab => {
+      tab.btn.addEventListener('click', () => {
+        tabs.forEach(t => {
+          t.btn.classList.remove('active');
+          t.btn.setAttribute('aria-selected', 'false');
+          t.pane.classList.remove('active');
+        });
+        tab.btn.classList.add('active');
+        tab.btn.setAttribute('aria-selected', 'true');
+        tab.pane.classList.add('active');
+        
+        // Hide details & errors when swapping tabs
+        document.getElementById('error-banner').style.display = 'none';
+      });
+    });
+
+    // ----------------------------------------------------
+    // URL SCAN HANDLERS
+    // ----------------------------------------------------
+    async function handleUrlSubmit(e) {
+      e.preventDefault();
+      const urlInput = document.getElementById('input-url-value');
+      const urlValue = urlInput.value.trim();
+
+      if (!urlValue) return;
+
+      hideError();
+      showLoader("Analyzing URL Details...");
+      
+      try {
+        const response = await fetch('/api/check-url', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ url: urlValue })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || `HTTP error ${response.status}`);
+        }
+
+        hideLoader();
+        renderUrlScanResults(data);
+      } catch (err) {
+        hideLoader();
+        showError(err.message || "Failed to establish server connection. Verify your network.");
+      }
+    }
+
+    // ----------------------------------------------------
+    // EMAIL FILE DRAG-DROP HANDLERS
+    // ----------------------------------------------------
+    const dropZone = document.getElementById('email-drop-zone');
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('dragover');
+      }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files.length) {
+        loadEmailFile(files[0]);
+      }
+    });
+
+    function triggerEmailFilePicker() {
+      document.getElementById('email-file-input').click();
+    }
+
+    function handleEmailFileSelected(e) {
+      const files = e.target.files;
+      if (files.length) {
+        loadEmailFile(files[0]);
+      }
+    }
+
+    function loadEmailFile(file) {
+      if (!file.name.toLowerCase().endswith('.eml')) {
+        showError("Invalid file type. Please upload a standard email .eml file.");
+        return;
+      }
+      
+      hideError();
+      selectedFile = file;
+      
+      // Update metadata card
+      document.getElementById('file-display-name').textContent = file.name;
+      document.getElementById('file-display-size').textContent = formatBytes(file.size);
+      
+      // Toggle visibility
+      document.getElementById('file-card').style.display = 'flex';
+      document.getElementById('btn-email-submit').removeAttribute('disabled');
+    }
+
+    function clearSelectedEmailFile(e) {
+      if (e) {
+        e.stopPropagation();
+      }
+      selectedFile = null;
+      document.getElementById('email-file-input').value = '';
+      document.getElementById('file-card').style.display = 'none';
+      document.getElementById('btn-email-submit').setAttribute('disabled', 'true');
+    }
+
+    async function handleEmailSubmit() {
+      if (!selectedFile) return;
+
+      hideError();
+      showLoader("Analyzing Email Headers and Content...");
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      try {
+        const response = await fetch('/api/check-email', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || `HTTP error ${response.status}`);
+        }
+
+        hideLoader();
+        renderEmailScanResults(data);
+      } catch (err) {
+        hideLoader();
+        showError(err.message || "Failed to parse email. Make sure it is a valid EML format.");
+      }
+    }
+
+    // Helper string checker
+    String.prototype.endswith = function(suffix) {
+      return this.indexOf(suffix, this.length - suffix.length) !== -1;
+    };
+
+    // Helper byte formatter
+    function formatBytes(bytes, decimals = 1) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const dm = decimals < 0 ? 0 : decimals;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
+
+    // ----------------------------------------------------
+    // LOADING INTERACTION UTILS
+    // ----------------------------------------------------
+    function showLoader(titleText) {
+      // Hide other components
+      document.getElementById('pane-url').style.display = 'none';
+      document.getElementById('pane-email').style.display = 'none';
+      document.querySelector('.tab-container').style.display = 'none';
+      
+      const loaderPane = document.getElementById('pane-loading');
+      loaderPane.style.display = 'flex';
+      
+      document.getElementById('loader-status').textContent = titleText;
+      
+      // Animate steps
+      const steps = [
+        document.querySelector('.loader-steps .id-step-1'),
+        document.querySelector('.loader-steps .id-step-2'),
+        document.querySelector('.loader-steps .id-step-3')
+      ];
+
+      steps.forEach(s => {
+        if (s) s.className = 'loader-step-item';
+      });
+      if (steps[0]) steps[0].classList.add('active');
+
+      let currentStepIndex = 0;
+      loadingInterval = setInterval(() => {
+        if (currentStepIndex < steps.length - 1) {
+          const current = steps[currentStepIndex];
+          const next = steps[currentStepIndex + 1];
+          if (current) {
+            current.classList.remove('active');
+            current.classList.add('done');
+          }
+          currentStepIndex++;
+          if (next) {
+            next.classList.add('active');
+          }
+        }
+      }, 2500);
+    }
+
+    function hideLoader() {
+      clearInterval(loadingInterval);
+      document.getElementById('pane-loading').style.display = 'none';
+    }
+
+    // ----------------------------------------------------
+    // RESULTS RENDER ENGINE
+    // ----------------------------------------------------
+    function renderVerdictBanner(verdictStr, score) {
+      const banner = document.getElementById('verdict-banner-card');
+      const title = document.getElementById('verdict-display-title');
+      const scoreNum = document.getElementById('verdict-display-score');
+      const iconContainer = document.getElementById('verdict-icon-container');
+
+      banner.className = 'verdict-banner';
+      scoreNum.textContent = score;
+
+      let statusClass = 'status-safe';
+      let iconSvg = '';
+
+      const uppercaseVerdict = verdictStr.toUpperCase();
+
+      if (uppercaseVerdict.includes('HIGH RISK') || uppercaseVerdict.includes('PHISHING')) {
+        statusClass = 'status-danger';
+        title.textContent = 'HIGH RISK / PHISHING LIKELY';
+        iconSvg = `
+          <svg class="verdict-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        `;
+      } else if (uppercaseVerdict.includes('SUSPICIOUS')) {
+        statusClass = 'status-suspicious';
+        title.textContent = 'SUSPICIOUS ACTIONS';
+        iconSvg = `
+          <svg class="verdict-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        `;
+      } else {
+        // Safe or Legitimate
+        statusClass = 'status-safe';
+        title.textContent = uppercaseVerdict.includes('LEGITIMATE') ? 'LIKELY LEGITIMATE' : 'LIKELY SAFE';
+        iconSvg = `
+          <svg class="verdict-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        `;
+      }
+
+      banner.classList.add(statusClass);
+      iconContainer.innerHTML = iconSvg;
+    }
+
+    // --- URL RESULTS INSERTER ---
+    function renderUrlScanResults(data) {
+      renderVerdictBanner(data.verdict, data.score);
+      const grid = document.getElementById('results-details-layout');
+      grid.innerHTML = ''; // reset previous result cards
+
+      // CARD 1: Domain Metadata
+      const domainCard = createDetailCard('Domain Identity', `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+      `);
+      
+      const domainAgeText = data.age_days !== null ? `${data.age_days} days` : 'Unknown (Not registered)';
+      let domainAgeBadge = 'badge-green';
+      if (data.age_days !== null && data.age_days < 30) {
+        domainAgeBadge = 'badge-red'; // newly registered
+      } else if (data.age_days === null) {
+        domainAgeBadge = 'badge-yellow';
+      }
+
+      domainCard.querySelector('.card-body').innerHTML = `
+        <div class="data-row">
+          <span class="data-label">Target URL</span>
+          <span class="data-val" style="font-size:0.8rem;">${escapeHtml(data.url)}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Extracted Domain</span>
+          <span class="data-val">${escapeHtml(data.domain)}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Domain Age</span>
+          <span class="data-badge ${domainAgeBadge}">${domainAgeText}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Creation Date</span>
+          <span class="data-val">${data.created_date ? escapeHtml(data.created_date) : 'N/A'}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">SSL certificate Issuer</span>
+          <span class="data-val" style="${data.ssl_issuer.includes('No SSL') ? 'color: var(--color-danger); font-weight:700;' : ''}">${escapeHtml(data.ssl_issuer)}</span>
+        </div>
+      `;
+      grid.appendChild(domainCard);
+
+      // CARD 2: Server Infrastructure Details
+      const serverCard = createDetailCard('Server Hosting Location', `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+        </svg>
+      `);
+
+      if (data.geo) {
+        serverCard.querySelector('.card-body').innerHTML = `
+          <div class="data-row">
+            <span class="data-label">IP Address</span>
+            <span class="data-val">${escapeHtml(data.geo.ip)}</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">ISP Provider</span>
+            <span class="data-val">${escapeHtml(data.geo.isp || 'Unknown ISP')}</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Server Location</span>
+            <span class="data-val">${escapeHtml(data.geo.city || 'N/A')}, ${escapeHtml(data.geo.country || 'N/A')} 📍</span>
+          </div>
+        `;
+      } else {
+        serverCard.querySelector('.card-body').innerHTML = `
+          <div class="empty-links-state" style="padding: 1rem 0; font-size: 0.9rem;">
+            Failed to resolve server IP records or geo-ip lookup timed out.
+          </div>
+        `;
+      }
+      grid.appendChild(serverCard);
+
+      // CARD 3: VirusTotal Security Vendor Results
+      const vtCard = createDetailCard('Vendor Reputation (VirusTotal)', `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      `);
+
+      if (data.vt_result && data.vt_result.status === 'success') {
+        const totalVendors = data.vt_result.malicious + data.vt_result.suspicious + data.vt_result.harmless + data.vt_result.undetected;
+        const maliciousPct = totalVendors > 0 ? (data.vt_result.malicious / totalVendors) * 100 : 0;
+        const harmlessPct = totalVendors > 0 ? ((data.vt_result.harmless + data.vt_result.undetected) / totalVendors) * 100 : 0;
+        
+        let vtStatusBadge = 'badge-green';
+        if (data.vt_result.malicious >= 5) {
+          vtStatusBadge = 'badge-red';
+        } else if (data.vt_result.malicious > 0 || data.vt_result.suspicious >= 3) {
+          vtStatusBadge = 'badge-yellow';
+        }
+
+        vtCard.querySelector('.card-header').innerHTML += `
+          <span class="card-badge ${vtStatusBadge}">${data.vt_result.malicious} / ${totalVendors} Flags</span>
+        `;
+
+        vtCard.querySelector('.card-body').innerHTML = `
+          <div class="vt-bar-group">
+            <div class="vt-bar-label">
+              <span class="data-label">Malicious / Suspicious</span>
+              <span class="data-val" style="color: var(--color-danger);">${data.vt_result.malicious + data.vt_result.suspicious} vendors</span>
+            </div>
+            <div class="vt-bar-track">
+              <div class="vt-bar-fill" style="width: ${maliciousPct}%; background-color: var(--color-danger);"></div>
+            </div>
+          </div>
+          <div class="vt-bar-group" style="margin-top:0.75rem;">
+            <div class="vt-bar-label">
+              <span class="data-label">Harmless / Clean</span>
+              <span class="data-val" style="color: var(--color-safe);">${data.vt_result.harmless + data.vt_result.undetected} vendors</span>
+            </div>
+            <div class="vt-bar-track">
+              <div class="vt-bar-fill" style="width: ${harmlessPct}%; background-color: var(--color-safe);"></div>
+            </div>
+          </div>
+        `;
+      } else if (data.vt_result && data.vt_result.status === 'failed') {
+        vtCard.querySelector('.card-body').innerHTML = `
+          <div class="empty-links-state" style="padding: 1rem 0; font-size: 0.9rem; color: var(--color-suspicious);">
+            VirusTotal was unable to scan this URL (domain does not exist or server is offline).
+          </div>
+        `;
+      } else {
+        vtCard.querySelector('.card-body').innerHTML = `
+          <div class="empty-links-state" style="padding: 1rem 0; font-size: 0.9rem;">
+            VirusTotal API lookup not available (API key unconfigured or rate limit reached).
+          </div>
+        `;
+      }
+      grid.appendChild(vtCard);
+
+      showResultsPane();
+    }
+
+    // --- EMAIL RESULTS INSERTER ---
+    function renderEmailScanResults(data) {
+      renderVerdictBanner(data.verdict, data.score);
+      const grid = document.getElementById('results-details-layout');
+      grid.innerHTML = ''; // reset previous result cards
+
+      // CARD 1: Email Metadata
+      const metaCard = createDetailCard('Email Attributes', `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+      `);
+      metaCard.querySelector('.card-body').innerHTML = `
+        <div class="data-row">
+          <span class="data-label">Sender Address</span>
+          <span class="data-val">${escapeHtml(data.sender)}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Subject Title</span>
+          <span class="data-val" style="font-style: italic;">"${escapeHtml(data.subject)}"</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Sender Domain</span>
+          <span class="data-val">${data.from_domain ? escapeHtml(data.from_domain) : 'N/A'}</span>
+        </div>
+      `;
+      grid.appendChild(metaCard);
+
+      // CARD 2: DMARC / DKIM / SPF Badges
+      const authCard = createDetailCard('Authentication Checks', `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>
+      `);
+      
+      const spfClass = data.auth_results.spf === 'pass' ? 'pass' : (data.auth_results.spf === 'fail' ? 'fail' : 'none');
+      const dkimClass = data.auth_results.dkim === 'pass' ? 'pass' : (data.auth_results.dkim === 'fail' ? 'fail' : 'none');
+      const dmarcClass = data.auth_results.dmarc === 'pass' ? 'pass' : (data.auth_results.dmarc === 'fail' ? 'fail' : 'none');
+
+      authCard.querySelector('.card-body').innerHTML = `
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.25rem;">Email security signatures parsed from mail server Authentication-Results header:</p>
+        <div class="auth-badges-group">
+          <div class="auth-badge-pill ${spfClass}">
+            <span class="pill-mechanism">SPF</span>
+            <span>${data.auth_results.spf.toUpperCase()}</span>
+          </div>
+          <div class="auth-badge-pill ${dkimClass}">
+            <span class="pill-mechanism">DKIM</span>
+            <span>${data.auth_results.dkim.toUpperCase()}</span>
+          </div>
+          <div class="auth-badge-pill ${dmarcClass}">
+            <span class="pill-mechanism">DMARC</span>
+            <span>${data.auth_results.dmarc.toUpperCase()}</span>
+          </div>
+        </div>
+      `;
+      grid.appendChild(authCard);
+
+      // CARD 3: Urgency & Phishing Flags
+      const flagsCard = createDetailCard('Detection Flags', `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      `);
+      
+      let flagsBodyHtml = '';
+      if (data.notes && data.notes.length > 0) {
+        flagsBodyHtml += '<ul class="notes-list">';
+        data.notes.forEach(note => {
+          flagsBodyHtml += `
+            <li class="notes-item">
+              <svg class="notes-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <span>${escapeHtml(note)}</span>
+            </li>
+          `;
+        });
+        flagsBodyHtml += '</ul>';
+      } else {
+        flagsBodyHtml += `
+          <div class="notes-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <span>No heuristic warning flags raised in content headers.</span>
+          </div>
+        `;
+      }
+      flagsCard.querySelector('.card-body').innerHTML = flagsBodyHtml;
+      grid.appendChild(flagsCard);
+
+      // CARD 4: Embedded URLs List Table (Full Column width)
+      const urlTableCard = createDetailCard('Scanned Embedded Links', `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        </svg>
+      `);
+      urlTableCard.classList.add('urls-card');
+
+      let tableHtml = '';
+      if (data.url_results && data.url_results.length > 0) {
+        tableHtml += `
+          <div class="table-container">
+            <table class="links-table">
+              <thead>
+                <tr>
+                  <th>Target Link Address</th>
+                  <th>Domain</th>
+                  <th>Risk Score</th>
+                  <th>Verdict Status</th>
+                  <th style="text-align:right;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+        
+        data.url_results.forEach((urlRes, idx) => {
+          let badgeColor = 'badge-green';
+          let rowVerdict = urlRes.verdict.toUpperCase();
+          if (rowVerdict.includes('HIGH RISK') || rowVerdict.includes('PHISHING')) {
+            badgeColor = 'badge-red';
+          } else if (rowVerdict.includes('SUSPICIOUS')) {
+            badgeColor = 'badge-yellow';
+          }
+
+          tableHtml += `
+            <tr onclick="inspectUrlDetailsByIndex(${idx})">
+              <td class="url-cell" title="${escapeHtml(urlRes.url)}">${escapeHtml(urlRes.url)}</td>
+              <td><code>${escapeHtml(urlRes.domain)}</code></td>
+              <td><strong>${urlRes.score}</strong></td>
+              <td><span class="card-badge ${badgeColor}">${escapeHtml(rowVerdict)}</span></td>
+              <td style="text-align:right;">
+                <button class="btn-inspect" onclick="inspectUrlDetailsByIndex(${idx}); event.stopPropagation();">Inspect</button>
+              </td>
+            </tr>
+          `;
+        });
+
+        tableHtml += `
+              </tbody>
+            </table>
+          </div>
+        `;
+      } else {
+        tableHtml += `
+          <div class="empty-links-state">
+            No active embedded HTTP/HTTPS links were detected in the email body.
+          </div>
+        `;
+      }
+      urlTableCard.querySelector('.card-body').innerHTML = tableHtml;
+      
+      // Save url results globally to support modal clicks
+      window.currentEmailUrlResults = data.url_results;
+
+      grid.appendChild(urlTableCard);
+
+      showResultsPane();
+    }
+
+    // Helper card generator
+    function createDetailCard(title, iconSvg) {
+      const card = document.createElement('div');
+      card.className = 'detail-card';
+      card.innerHTML = `
+        <div class="card-header">
+          <h3 class="card-title">
+            ${iconSvg}
+            <span>${title}</span>
+          </h3>
+        </div>
+        <div class="card-body"></div>
+      `;
+      return card;
+    }
+
+    // Inspect individual embedded link
+    function inspectUrlDetailsByIndex(idx) {
+      const results = window.currentEmailUrlResults;
+      if (!results || !results[idx]) return;
+
+      const urlData = results[idx];
+      const modalBody = document.getElementById('modal-body-container');
+      modalBody.innerHTML = ''; // reset previous
+
+      // Render inner content similar to URL scan results in grid
+      // Render Title/Verdict inside modal
+      const modVerdictBanner = document.createElement('div');
+      modVerdictBanner.className = 'verdict-banner';
+      
+      let statusClass = 'status-safe';
+      let iconSvg = '';
+      let displayVerdict = urlData.verdict.toUpperCase();
+
+      if (displayVerdict.includes('HIGH RISK') || displayVerdict.includes('PHISHING')) {
+        statusClass = 'status-danger';
+        iconSvg = `<svg class="verdict-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+      } else if (displayVerdict.includes('SUSPICIOUS')) {
+        statusClass = 'status-suspicious';
+        iconSvg = `<svg class="verdict-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+      } else {
+        statusClass = 'status-safe';
+        iconSvg = `<svg class="verdict-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>`;
+      }
+
+      modVerdictBanner.classList.add(statusClass);
+      modVerdictBanner.innerHTML = `
+        <div class="verdict-content">
+          ${iconSvg}
+          <div class="verdict-text-group">
+            <span class="verdict-label">URL Verdict</span>
+            <span class="verdict-value">${displayVerdict}</span>
+          </div>
+        </div>
+        <div class="verdict-score-box">
+          <div class="verdict-score-num">${urlData.score}</div>
+          <div class="verdict-score-label">Score</div>
+        </div>
+      `;
+      modalBody.appendChild(modVerdictBanner);
+
+      // Create Grid in Modal
+      const modalGrid = document.createElement('div');
+      modalGrid.className = 'results-grid';
+      modalGrid.style.gridTemplateColumns = '1fr';
+      
+      // Add domain details card
+      const domainCard = createDetailCard('Domain Identity', `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      `);
+      
+      const domainAgeText = urlData.age_days !== null ? `${urlData.age_days} days` : 'Unknown (Not registered)';
+      let domainAgeBadge = 'badge-green';
+      if (urlData.age_days !== null && urlData.age_days < 30) {
+        domainAgeBadge = 'badge-red';
+      } else if (urlData.age_days === null) {
+        domainAgeBadge = 'badge-yellow';
+      }
+
+      domainCard.querySelector('.card-body').innerHTML = `
+        <div class="data-row">
+          <span class="data-label">Target URL</span>
+          <span class="data-val" style="font-size:0.85rem;">${escapeHtml(urlData.url)}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Extracted Domain</span>
+          <span class="data-val">${escapeHtml(urlData.domain)}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Domain Age</span>
+          <span class="data-badge ${domainAgeBadge}">${domainAgeText}</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">SSL certificate Issuer</span>
+          <span class="data-val">${escapeHtml(urlData.ssl_issuer)}</span>
+        </div>
+      `;
+      modalGrid.appendChild(domainCard);
+
+      // IP/ISP Card
+      if (urlData.geo) {
+        const ipCard = createDetailCard('Hosting Server Details', `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        `);
+        ipCard.querySelector('.card-body').innerHTML = `
+          <div class="data-row">
+            <span class="data-label">IP Address</span>
+            <span class="data-val">${escapeHtml(urlData.geo.ip)}</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">ISP/Host</span>
+            <span class="data-val">${escapeHtml(urlData.geo.isp || 'Unknown')}</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Server Location</span>
+            <span class="data-val">${escapeHtml(urlData.geo.city || 'N/A')}, ${escapeHtml(urlData.geo.country || 'N/A')} 📍</span>
+          </div>
+        `;
+        modalGrid.appendChild(ipCard);
+      }
+
+      // VT Card
+      if (urlData.vt_result) {
+        const vtCard = createDetailCard('VirusTotal Reputation', `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        `);
+        
+        const total = urlData.vt_result.malicious + urlData.vt_result.suspicious + urlData.vt_result.harmless + urlData.vt_result.undetected;
+        const maliciousPct = total > 0 ? (urlData.vt_result.malicious / total) * 100 : 0;
+        const harmlessPct = total > 0 ? ((urlData.vt_result.harmless + urlData.vt_result.undetected) / total) * 100 : 0;
+
+        vtCard.querySelector('.card-body').innerHTML = `
+          <div class="vt-bar-group">
+            <div class="vt-bar-label">
+              <span class="data-label">Malicious flags</span>
+              <span class="data-val">${urlData.vt_result.malicious} / ${total} vendors</span>
+            </div>
+            <div class="vt-bar-track">
+              <div class="vt-bar-fill" style="width: ${maliciousPct}%; background-color: var(--color-danger);"></div>
+            </div>
+          </div>
+          <div class="vt-bar-group">
+            <div class="vt-bar-label">
+              <span class="data-label">Harmless / Undetected</span>
+              <span class="data-val">${urlData.vt_result.harmless + urlData.vt_result.undetected} vendors</span>
+            </div>
+            <div class="vt-bar-track">
+              <div class="vt-bar-fill" style="width: ${harmlessPct}%; background-color: var(--color-safe);"></div>
+            </div>
+          </div>
+        `;
+        modalGrid.appendChild(vtCard);
+      }
+
+      modalBody.appendChild(modalGrid);
+      toggleInspectModal(true);
+    }
+
+    function toggleInspectModal(isOpen) {
+      const modal = document.getElementById('inspect-modal');
+      if (isOpen) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      } else {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    function closeInspectModal(e) {
+      toggleInspectModal(false);
+    }
+
+    // ----------------------------------------------------
+    // APP PANEL STATE MANAGERS
+    // ----------------------------------------------------
+    function showResultsPane() {
+      document.getElementById('pane-results').style.display = 'block';
+    }
+
+    function resetFormState() {
+      // Hide results
+      document.getElementById('pane-results').style.display = 'none';
+      
+      // Reset text inputs & files
+      document.getElementById('input-url-value').value = '';
+      clearSelectedEmailFile(null);
+      
+      // Restore tab pane displays
+      const activeTab = document.querySelector('.tab-btn.active');
+      const activePaneId = activeTab.getAttribute('aria-controls');
+      
+      document.querySelector('.tab-container').style.display = 'flex';
+      tabs.forEach(t => {
+        t.pane.style.display = ''; // Clear inline styles so class-based CSS works!
+        if (t.pane.id === activePaneId) {
+          t.pane.classList.add('active');
+        } else {
+          t.pane.classList.remove('active');
+        }
+      });
+      
+      hideError();
+    }
+
+    // Error rendering utils
+    function showError(msg) {
+      const banner = document.getElementById('error-banner');
+      const desc = document.getElementById('error-message');
+      desc.textContent = msg;
+      banner.style.display = 'block';
+      banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function hideError() {
+      document.getElementById('error-banner').style.display = 'none';
+    }
+
+    // HTML escape utility to defend against XSS
+    function escapeHtml(unsafe) {
+      if (typeof unsafe !== 'string') return unsafe;
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>

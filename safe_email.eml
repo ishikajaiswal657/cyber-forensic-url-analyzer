@@ -1,0 +1,16 @@
+From: Support Team <support@google.com>
+To: User <user@example.com>
+Subject: Security settings updated
+Date: Wed, 29 Jul 2026 01:00:00 +0000
+Authentication-Results: mx.google.com; spf=pass; dkim=pass; dmarc=pass
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Hello,
+
+The security settings on your account have been successfully updated.
+No further action is required from your side. If you did not perform this change, please visit:
+https://myaccount.google.com
+
+Best,
+Security Team

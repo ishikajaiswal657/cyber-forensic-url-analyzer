@@ -1,0 +1,32 @@
+From: Account Security <security@paypal-update.com>
+Reply-To: bad-actor@evil-domain.com
+To: User <user@example.com>
+Subject: Urgent Action Required: Account Suspended!
+Date: Wed, 29 Jul 2026 01:05:00 +0000
+Authentication-Results: mx.google.com; spf=fail; dkim=fail; dmarc=fail
+Content-Type: multipart/mixed; boundary="boundary-example"
+
+--boundary-example
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Dear User,
+
+We noticed unusual activity on your account. Your account has been suspended!
+You must verify your identity immediately to unlock it.
+Please click here to confirm your identity:
+http://verify-bank-security-update-kyc.com/login
+
+Failure to act now will result in permanent locking of your account.
+
+Best regards,
+Customer Support
+
+--boundary-example
+Content-Type: application/octet-stream; name="invoice_verification_details.exe"
+Content-Disposition: attachment; filename="invoice_verification_details.exe"
+Content-Transfer-Encoding: base64
+
+dGVzdCBmaWxlIGNvbnRlbnQ=
+
+--boundary-example--

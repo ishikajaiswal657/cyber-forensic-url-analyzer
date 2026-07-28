@@ -20,6 +20,10 @@ from email.parser import BytesParser
 load_dotenv()
 VT_API_KEY = os.getenv("VT_API_KEY")
 
+# Set default socket timeout (in seconds) to prevent third-party libraries (like python-whois)
+# from hanging indefinitely when connection/firewall issues arise.
+socket.setdefaulttimeout(3)
+
 # --- NEW: constants for email analysis ---
 DANGEROUS_EXTENSIONS = (
     ".exe", ".scr", ".js", ".vbs", ".bat", ".cmd", ".jar",
@@ -92,15 +96,47 @@ def get_domain_age(domain):
 def get_ip_geo(domain):
     try:
         ip_addr = socket.gethostbyname(domain)
-        response = requests.get(f"https://ipapi.co/{ip_addr}/json/", timeout=5).json()
-        return {
-            "ip": ip_addr,
-            "city": response.get("city"),
-            "country": response.get("country_name"),
-            "isp": response.get("org")
-        }
     except Exception:
-        return None
+        return {
+            "ip": "Offline (No DNS record)",
+            "city": "N/A",
+            "country": "Offline",
+            "isp": "N/A"
+        }
+
+    # Try ip-api.com (free, reliable, no Cloudflare blocks)
+    try:
+        response = requests.get(f"http://ip-api.com/json/{ip_addr}", timeout=5).json()
+        if response.get("status") == "success":
+            return {
+                "ip": ip_addr,
+                "city": response.get("city") or "Unknown",
+                "country": response.get("country") or "Unknown",
+                "isp": response.get("isp") or "Unknown"
+            }
+    except Exception:
+        pass
+
+    # Fallback to ipapi.co
+    try:
+        response = requests.get(f"https://ipapi.co/{ip_addr}/json/", headers={'User-Agent': 'Mozilla/5.0'}, timeout=5).json()
+        if "error" not in response:
+            return {
+                "ip": ip_addr,
+                "city": response.get("city") or "Unknown",
+                "country": response.get("country_name") or "Unknown",
+                "isp": response.get("org") or "Unknown"
+            }
+    except Exception:
+        pass
+
+    # Fallback to returning resolved IP if Geo-IP APIs fail
+    return {
+        "ip": ip_addr,
+        "city": "Unknown",
+        "country": "Unknown",
+        "isp": "Unknown"
+    }
 
 def check_ssl_details(domain):
     context = ssl.create_default_context()
@@ -115,46 +151,80 @@ def check_ssl_details(domain):
 
 def check_virustotal(url):
     """
-    Submits the URL to VirusTotal and returns how many security vendors
-    flagged it as malicious or suspicious.
-    Returns a dict, or None if the check failed (no key, no internet, rate limit, etc).
+    Submits the URL to VirusTotal and returns security scan results.
+    Returns a dict containing 'status' and results, or None if the check failed.
     """
     if not VT_API_KEY:
-        return None  # no key configured, skip silently
+        return None  # keep None so frontend knows it's unconfigured
 
     headers = {"x-apikey": VT_API_KEY}
 
+    import base64
     try:
-        # Step 1: submit the URL for analysis
-        submit_resp = requests.post(
-            "https://www.virustotal.com/api/v3/urls",
-            headers=headers,
-            data={"url": url},
-            timeout=10
-        )
-        submit_resp.raise_for_status()
-        analysis_id = submit_resp.json()["data"]["id"]
+        # Encode URL to base64 ID without padding as required by VT API
+        url_id = base64.urlsafe_b64encode(url.encode()).decode().strip("=")
+        
+        # Step 1: Try to retrieve existing analysis report (fastest, no polling)
+        url_report_url = f"https://www.virustotal.com/api/v3/urls/{url_id}"
+        report_resp = requests.get(url_report_url, headers=headers, timeout=10)
+        
+        if report_resp.status_code == 200:
+            stats = report_resp.json()["data"]["attributes"].get("last_analysis_stats", {})
+            return {
+                "status": "success",
+                "malicious": stats.get("malicious", 0),
+                "suspicious": stats.get("suspicious", 0),
+                "harmless": stats.get("harmless", 0),
+                "undetected": stats.get("undetected", 0),
+            }
+        
+        # Step 2: If report is not found (404), submit for a new analysis
+        elif report_resp.status_code == 404:
+            submit_resp = requests.post(
+                "https://www.virustotal.com/api/v3/urls",
+                headers=headers,
+                data={"url": url},
+                timeout=10
+            )
+            submit_resp.raise_for_status()
+            analysis_id = submit_resp.json()["data"]["id"]
 
-        # Step 2: fetch the analysis result — poll until the scan is actually done.
-        # VirusTotal queues the scan first, so an immediate fetch often returns
-        # empty stats. We check the "status" field and retry a few times.
-        analysis_url = f"https://www.virustotal.com/api/v3/analyses/{analysis_id}"
-        stats = {}
-        for attempt in range(6):  # up to ~12 seconds of waiting
-            result_resp = requests.get(analysis_url, headers=headers, timeout=10)
-            result_resp.raise_for_status()
-            data = result_resp.json()["data"]["attributes"]
-            if data.get("status") == "completed":
-                stats = data.get("stats", {})
-                break
-            time.sleep(2)  # scan still running — wait before checking again
+            # Step 3: Poll analysis result
+            analysis_url = f"https://www.virustotal.com/api/v3/analyses/{analysis_id}"
+            for attempt in range(6):  # up to ~12 seconds of waiting
+                result_resp = requests.get(analysis_url, headers=headers, timeout=10)
+                result_resp.raise_for_status()
+                data = result_resp.json()["data"]["attributes"]
+                status = data.get("status")
+                if status == "completed":
+                    stats = data.get("stats", {})
+                    return {
+                        "status": "success",
+                        "malicious": stats.get("malicious", 0),
+                        "suspicious": stats.get("suspicious", 0),
+                        "harmless": stats.get("harmless", 0),
+                        "undetected": stats.get("undetected", 0),
+                    }
+                elif status == "failed":
+                    return {
+                        "status": "failed",
+                        "malicious": 0,
+                        "suspicious": 0,
+                        "harmless": 0,
+                        "undetected": 0
+                    }
+                time.sleep(2)
 
-        return {
-            "malicious": stats.get("malicious", 0),
-            "suspicious": stats.get("suspicious", 0),
-            "harmless": stats.get("harmless", 0),
-            "undetected": stats.get("undetected", 0),
-        }
+            return {
+                "status": "error",
+                "malicious": 0,
+                "suspicious": 0,
+                "harmless": 0,
+                "undetected": 0
+            }
+            
+        else:
+            return None
 
     except requests.exceptions.RequestException:
         # covers timeouts, rate limits, no internet, bad key, etc.
@@ -192,10 +262,10 @@ def analyze_url(url, verbose=True):
     if isinstance(age_days, int) and age_days < 30:
         score += 3
 
-    if vt_result:
-        if vt_result["malicious"] >= 5:
+    if vt_result and vt_result.get("status") == "success":
+        if vt_result.get("malicious", 0) >= 5:
             score += 5
-        elif vt_result["malicious"] >= 1 or vt_result["suspicious"] >= 3:
+        elif vt_result.get("malicious", 0) >= 1 or vt_result.get("suspicious", 0) >= 3:
             score += 2
 
     if score >= 5:
@@ -234,10 +304,13 @@ SSL:      {result['ssl_issuer']}
         report += f"Server:   {geo['ip']} ({geo['isp']})\nLocation: {geo['city']}, {geo['country']} 📍\n"
 
     vt_result = result["vt_result"]
-    if vt_result:
+    if vt_result and vt_result.get("status") == "success":
+        total_vendors = vt_result['malicious'] + vt_result['suspicious'] + vt_result['harmless'] + vt_result['undetected']
         report += (f"VirusTotal: {vt_result['malicious']} malicious / "
                    f"{vt_result['suspicious']} suspicious / "
-                   f"{vt_result['harmless']} clean (out of {sum(vt_result.values())} vendors)\n")
+                   f"{vt_result['harmless']} clean (out of {total_vendors} vendors)\n")
+    elif vt_result and vt_result.get("status") == "failed":
+        report += "VirusTotal: Scan failed (domain offline or unreachable)\n"
     else:
         report += "VirusTotal: Unavailable (no API key or rate limit)\n"
 

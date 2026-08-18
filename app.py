@@ -2,6 +2,7 @@ import os
 import tempfile
 import datetime
 from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
 from dotenv import load_dotenv
 
 # Import the provided phishing analyzer logic
@@ -12,6 +13,11 @@ load_dotenv()
 
 # Initialize Flask app, configuring static folder
 app = Flask(__name__, static_folder='static', static_url_path='')
+
+# Allow the browser extension (chrome-extension:// / moz-extension:// origins)
+# to call the API endpoints. The extension only ever POSTs a URL or a .eml file
+# it already has, so an open CORS policy on these two routes is low-risk.
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 def json_serializable(data):
     """

@@ -265,7 +265,7 @@ def analyze_url(url, verbose=True):
     if vt_result and vt_result.get("status") == "success":
         if vt_result.get("malicious", 0) >= 5:
             score += 5
-        elif vt_result.get("malicious", 0) >= 1 or vt_result.get("suspicious", 0) >= 3:
+        elif vt_result.get("malicious", 0) >= 3 or vt_result.get("suspicious", 0) >= 5:
             score += 2
 
     if score >= 5:

@@ -18,7 +18,7 @@ A cyber cell investigation tool that detects phishing URLs using domain age, IP 
 
 ## 🌐 Web App
 
-Live at: [cyber-forensic-url-analyzer-production.up.railway.app](https://cyber-forensic-url-analyzer-production.up.railway.app)
+Live at: [https://shieldcheck-gih5.onrender.com](https://shieldcheck-gih5.onrender.com)
 
 ## 🧩 Browser Extension
 

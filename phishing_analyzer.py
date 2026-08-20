@@ -38,7 +38,13 @@ URGENCY_PHRASES = [
 
 # --- HEURISTIC FUNCTIONS ---
 def check_length(url):
-    return 1 if len(url) > 75 else 0
+    # Measure length without the query string. Phishing URLs are usually
+    # long because of an obfuscated/padded PATH (trying to hide the real
+    # destination) — legitimate marketing/tracking links are long because
+    # of utm_* parameters and tokens in the QUERY STRING, which is normal
+    # and not itself suspicious.
+    base_url = url.split("?", 1)[0]
+    return 1 if len(base_url) > 75 else 0
 
 def has_ip(url):
     ip_pattern = r'(\d{1,3}\.){3}\d{1,3}'
@@ -55,7 +61,15 @@ def https_check(url):
     return 0 if url.startswith("https://") else 1
 
 def hyphen_check(url):
-    return 1 if url.count("-") > 3 else 0
+    # Only count hyphens in the actual domain name, not the full URL.
+    # Fake phishing domains often stack hyphens to mimic real brands
+    # (e.g. "paypal-secure-login-verify.com"), but a hyphen count on the
+    # WHOLE url also flags any legitimate link containing a UUID or token
+    # in its path/query string (UUIDs always contain 4 hyphens by design —
+    # e.g. Railway, Stripe, AWS, Notion links all do this).
+    ext = tldextract.extract(url)
+    domain_only = ext.domain  # just "paypal-secure-login-verify", not the path/query
+    return 1 if domain_only.count("-") > 3 else 0
 
 def extract_domain(url):
     ext = tldextract.extract(url)
@@ -447,16 +461,22 @@ def analyze_email(filepath, scan_urls=True, verbose=True):
     if risky_attachments:
         notes.append(f"Risky attachments: {risky_attachments}")
 
-    # Reuses your existing analyze_url() for every link found in the body
+    # Reuses your existing analyze_url() for every link found in the body.
+    # Capped at 5 links so a link-heavy email (common in marketing/phishing
+    # mail) can't cause the request to time out on slower hosting.
     url_results = []
     if scan_urls:
-        for url in extract_urls_from_body(body_text):
+        found_urls = extract_urls_from_body(body_text)
+        skipped_count = max(0, len(found_urls) - 5)
+        for url in found_urls[:5]:
             result = analyze_url(url, verbose=False)
             url_results.append(result)
             if result["verdict"] == "HIGH RISK / PHISHING LIKELY":
                 score += 4
             elif result["verdict"] == "SUSPICIOUS":
                 score += 1
+        if skipped_count:
+            notes.append(f"{skipped_count} additional link(s) in this email were not scanned (limit: 5 per email)")
 
     if score >= 8:
         verdict = "HIGH RISK / PHISHING LIKELY"
@@ -639,3 +659,4 @@ if __name__ == "__main__":
         # No flags given -> ask the user which single check they want,
         # instead of running both URL and email logic.
         run_interactive_menu()
+        

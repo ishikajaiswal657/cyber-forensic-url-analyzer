@@ -22,7 +22,7 @@ Live at: [https://shieldcheck-gih5.onrender.com](https://shieldcheck-gih5.onrend
 
 ## 🧩 Browser Extension
 
-Download **`shieldcheck-extension.zip`** from this repo. It contains a browser extension that talks to the same Flask API as the website — no scanning logic runs in the browser, WHOIS/SSL/VirusTotal checks all happen server-side exactly as they do on the site.
+Download **`shieldcheck.zip`** from this repo. It contains a browser extension that talks to the same Flask API as the website — no scanning logic runs in the browser, WHOIS/SSL/VirusTotal checks all happen server-side exactly as they do on the site.
 
 **Features:**
 - Auto-scans the current tab's URL when you open the popup
@@ -30,12 +30,12 @@ Download **`shieldcheck-extension.zip`** from this repo. It contains a browser e
 - Right-click any link on a page → "Scan this link with ShieldCheck"
 
 **Install (Chrome/Edge):**
-1. Download `shieldcheck-extension.zip` and unzip it — you'll get a folder called `extension`
+1. Download `shieldcheck.zip` and unzip it — you'll get a folder called `extension`
 2. Go to `chrome://extensions`, turn on **Developer mode**
 3. Click **Load unpacked**, select the unzipped `extension` folder
 
 **Install (Firefox):**
-1. Unzip `shieldcheck-extension.zip`. Inside, swap `manifest.json` and `manifest.firefox.json` (rename accordingly — Firefox only reads `manifest.json`)
+1. Unzip `shieldcheck.zip`. Inside, swap `manifest.json` and `manifest.firefox.json` (rename accordingly — Firefox only reads `manifest.json`)
 2. Go to `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on**, select `manifest.json`
 
 ---

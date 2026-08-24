@@ -38,7 +38,13 @@ URGENCY_PHRASES = [
 
 # --- HEURISTIC FUNCTIONS ---
 def check_length(url):
-    return 1 if len(url) > 75 else 0
+    # Measure length without the query string. Phishing URLs are usually
+    # long because of an obfuscated/padded PATH (trying to hide the real
+    # destination) — legitimate marketing/tracking links are long because
+    # of utm_* parameters and tokens in the QUERY STRING, which is normal
+    # and not itself suspicious.
+    base_url = url.split("?", 1)[0]
+    return 1 if len(base_url) > 75 else 0
 
 def has_ip(url):
     ip_pattern = r'(\d{1,3}\.){3}\d{1,3}'
@@ -55,7 +61,15 @@ def https_check(url):
     return 0 if url.startswith("https://") else 1
 
 def hyphen_check(url):
-    return 1 if url.count("-") > 3 else 0
+    # Only count hyphens in the actual domain name, not the full URL.
+    # Fake phishing domains often stack hyphens to mimic real brands
+    # (e.g. "paypal-secure-login-verify.com"), but a hyphen count on the
+    # WHOLE url also flags any legitimate link containing a UUID or token
+    # in its path/query string (UUIDs always contain 4 hyphens by design —
+    # e.g. Railway, Stripe, AWS, Notion links all do this).
+    ext = tldextract.extract(url)
+    domain_only = ext.domain  # just "paypal-secure-login-verify", not the path/query
+    return 1 if domain_only.count("-") > 3 else 0
 
 def extract_domain(url):
     ext = tldextract.extract(url)
@@ -93,6 +107,17 @@ def get_domain_age(domain):
         return None, None
     return None, None
 
+def _safe_get_json(url, headers=None, hard_timeout=6):
+    """Runs requests.get in a background thread and hard-kills it after
+    hard_timeout seconds no matter what the underlying socket is doing."""
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=1) as ex:
+        future = ex.submit(requests.get, url, headers=headers, timeout=5)
+        try:
+            return future.result(timeout=hard_timeout).json()
+        except Exception:
+            return None
+
 def get_ip_geo(domain):
     try:
         ip_addr = socket.gethostbyname(domain)
@@ -105,30 +130,24 @@ def get_ip_geo(domain):
         }
 
     # Try ip-api.com (free, reliable, no Cloudflare blocks)
-    try:
-        response = requests.get(f"http://ip-api.com/json/{ip_addr}", timeout=5).json()
-        if response.get("status") == "success":
-            return {
-                "ip": ip_addr,
-                "city": response.get("city") or "Unknown",
-                "country": response.get("country") or "Unknown",
-                "isp": response.get("isp") or "Unknown"
-            }
-    except Exception:
-        pass
+    response = _safe_get_json(f"http://ip-api.com/json/{ip_addr}")
+    if response and response.get("status") == "success":
+        return {
+            "ip": ip_addr,
+            "city": response.get("city") or "Unknown",
+            "country": response.get("country") or "Unknown",
+            "isp": response.get("isp") or "Unknown"
+        }
 
     # Fallback to ipapi.co
-    try:
-        response = requests.get(f"https://ipapi.co/{ip_addr}/json/", headers={'User-Agent': 'Mozilla/5.0'}, timeout=5).json()
-        if "error" not in response:
-            return {
-                "ip": ip_addr,
-                "city": response.get("city") or "Unknown",
-                "country": response.get("country_name") or "Unknown",
-                "isp": response.get("org") or "Unknown"
-            }
-    except Exception:
-        pass
+    response = _safe_get_json(f"https://ipapi.co/{ip_addr}/json/", headers={'User-Agent': 'Mozilla/5.0'})
+    if response and "error" not in response:
+        return {
+            "ip": ip_addr,
+            "city": response.get("city") or "Unknown",
+            "country": response.get("country_name") or "Unknown",
+            "isp": response.get("org") or "Unknown"
+        }
 
     # Fallback to returning resolved IP if Geo-IP APIs fail
     return {
@@ -166,7 +185,7 @@ def check_virustotal(url):
         
         # Step 1: Try to retrieve existing analysis report (fastest, no polling)
         url_report_url = f"https://www.virustotal.com/api/v3/urls/{url_id}"
-        report_resp = requests.get(url_report_url, headers=headers, timeout=10)
+        report_resp = requests.get(url_report_url, headers=headers, timeout=(5, 10))
         
         if report_resp.status_code == 200:
             stats = report_resp.json()["data"]["attributes"].get("last_analysis_stats", {})
@@ -184,7 +203,7 @@ def check_virustotal(url):
                 "https://www.virustotal.com/api/v3/urls",
                 headers=headers,
                 data={"url": url},
-                timeout=10
+                timeout=(5, 10)
             )
             submit_resp.raise_for_status()
             analysis_id = submit_resp.json()["data"]["id"]
@@ -192,7 +211,7 @@ def check_virustotal(url):
             # Step 3: Poll analysis result
             analysis_url = f"https://www.virustotal.com/api/v3/analyses/{analysis_id}"
             for attempt in range(6):  # up to ~12 seconds of waiting
-                result_resp = requests.get(analysis_url, headers=headers, timeout=10)
+                result_resp = requests.get(analysis_url, headers=headers, timeout=(5, 10))
                 result_resp.raise_for_status()
                 data = result_resp.json()["data"]["attributes"]
                 status = data.get("status")
@@ -265,7 +284,7 @@ def analyze_url(url, verbose=True):
     if vt_result and vt_result.get("status") == "success":
         if vt_result.get("malicious", 0) >= 5:
             score += 5
-        elif vt_result.get("malicious", 0) >= 1 or vt_result.get("suspicious", 0) >= 3:
+        elif vt_result.get("malicious", 0) >= 3 or vt_result.get("suspicious", 0) >= 5:
             score += 2
 
     if score >= 5:
@@ -447,16 +466,22 @@ def analyze_email(filepath, scan_urls=True, verbose=True):
     if risky_attachments:
         notes.append(f"Risky attachments: {risky_attachments}")
 
-    # Reuses your existing analyze_url() for every link found in the body
+    # Reuses your existing analyze_url() for every link found in the body.
+    # Capped at 5 links so a link-heavy email (common in marketing/phishing
+    # mail) can't cause the request to time out on slower hosting.
     url_results = []
     if scan_urls:
-        for url in extract_urls_from_body(body_text):
+        found_urls = extract_urls_from_body(body_text)
+        skipped_count = max(0, len(found_urls) - 5)
+        for url in found_urls[:5]:
             result = analyze_url(url, verbose=False)
             url_results.append(result)
             if result["verdict"] == "HIGH RISK / PHISHING LIKELY":
                 score += 4
             elif result["verdict"] == "SUSPICIOUS":
                 score += 1
+        if skipped_count:
+            notes.append(f"{skipped_count} additional link(s) in this email were not scanned (limit: 5 per email)")
 
     if score >= 8:
         verdict = "HIGH RISK / PHISHING LIKELY"

@@ -153,7 +153,11 @@ class RiskAgent:
             "context_notes": context_notes,
         }
         self._log_decision(record)
-        return record
+        
+        # Merge base forensic data with agent data for the frontend
+        result = base.copy()
+        result.update(record)
+        return result
 
     def assess_email(self, filepath: str) -> dict:
         base = _call_flexible(analyze_email, filepath, verbose=False)
@@ -169,7 +173,11 @@ class RiskAgent:
             "context_notes": base["notes"],
         }
         self._log_decision(record)
-        return record
+        
+        # Merge base forensic data with agent data for the frontend
+        result = base.copy()
+        result.update(record)
+        return result
 
 
 def print_decision(record: dict) -> None:

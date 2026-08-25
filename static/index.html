@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ShieldCheck — Instant Phishing & URL Forensic Analysis</title>
-  <meta name="description" content="A free website where anyone can paste a suspicious link or upload a suspicious email and get a clear, explained verdict on whether it's likely phishing.">
-  
+  <meta name="description"
+    content="A free website where anyone can paste a suspicious link or upload a suspicious email and get a clear, explained verdict on whether it's likely phishing.">
+
   <!-- Modern Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
   <style>
     /* ----------------------------------------------------
@@ -22,32 +26,32 @@
       --bg-card-hover: rgba(30, 41, 67, 0.85);
       --border-color: rgba(255, 255, 255, 0.08);
       --border-focus: #3b82f6;
-      
+
       --text-main: #f3f4f6;
       --text-muted: #9ca3af;
       --text-bright: #ffffff;
-      
+
       --color-primary: #2563eb;
       --color-primary-hover: #3b82f6;
       --color-primary-glow: rgba(59, 130, 246, 0.3);
       --color-accent: #06b6d4;
       --color-accent-glow: rgba(6, 182, 212, 0.25);
-      
+
       --color-safe: #10b981;
       --color-safe-bg: rgba(16, 185, 129, 0.12);
       --color-safe-border: rgba(16, 185, 129, 0.35);
-      
+
       --color-suspicious: #f59e0b;
       --color-suspicious-bg: rgba(245, 158, 11, 0.12);
       --color-suspicious-border: rgba(245, 158, 11, 0.35);
-      
+
       --color-danger: #ef4444;
       --color-danger-bg: rgba(239, 68, 68, 0.12);
       --color-danger-border: rgba(239, 68, 68, 0.35);
 
       --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --font-heading: 'Outfit', sans-serif;
-      
+
       --transition-speed: 0.25s;
       --border-radius: 14px;
     }
@@ -63,7 +67,7 @@
 
     body {
       background-color: var(--bg-primary);
-      background-image: 
+      background-image:
         radial-gradient(at 10% 20%, rgba(37, 99, 235, 0.1) 0px, transparent 50%),
         radial-gradient(at 90% 80%, rgba(6, 182, 212, 0.08) 0px, transparent 50%);
       background-attachment: fixed;
@@ -77,7 +81,9 @@
       flex-direction: column;
     }
 
-    a, button, input {
+    a,
+    button,
+    input {
       font-family: inherit;
     }
 
@@ -303,7 +309,8 @@
       margin-bottom: 1.5rem;
     }
 
-    .drag-zone:hover, .drag-zone.dragover {
+    .drag-zone:hover,
+    .drag-zone.dragover {
       border-color: var(--color-accent);
       background: rgba(6, 182, 212, 0.04);
       box-shadow: 0 0 20px rgba(6, 182, 212, 0.05);
@@ -317,7 +324,8 @@
       transition: color var(--transition-speed);
     }
 
-    .drag-zone:hover .drag-zone-icon, .drag-zone.dragover .drag-zone-icon {
+    .drag-zone:hover .drag-zone-icon,
+    .drag-zone.dragover .drag-zone-icon {
       color: var(--color-accent);
     }
 
@@ -647,25 +655,55 @@
       background: var(--color-safe-bg);
       border: 1px solid var(--color-safe-border);
     }
-    .status-safe .verdict-value { color: var(--color-safe); }
-    .status-safe .verdict-badge-icon { color: var(--color-safe); filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.2)); }
-    .status-safe .verdict-score-box { border-color: var(--color-safe-border); }
+
+    .status-safe .verdict-value {
+      color: var(--color-safe);
+    }
+
+    .status-safe .verdict-badge-icon {
+      color: var(--color-safe);
+      filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.2));
+    }
+
+    .status-safe .verdict-score-box {
+      border-color: var(--color-safe-border);
+    }
 
     .status-suspicious {
       background: var(--color-suspicious-bg);
       border: 1px solid var(--color-suspicious-border);
     }
-    .status-suspicious .verdict-value { color: var(--color-suspicious); }
-    .status-suspicious .verdict-badge-icon { color: var(--color-suspicious); filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.2)); }
-    .status-suspicious .verdict-score-box { border-color: var(--color-suspicious-border); }
+
+    .status-suspicious .verdict-value {
+      color: var(--color-suspicious);
+    }
+
+    .status-suspicious .verdict-badge-icon {
+      color: var(--color-suspicious);
+      filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.2));
+    }
+
+    .status-suspicious .verdict-score-box {
+      border-color: var(--color-suspicious-border);
+    }
 
     .status-danger {
       background: var(--color-danger-bg);
       border: 1px solid var(--color-danger-border);
     }
-    .status-danger .verdict-value { color: var(--color-danger); }
-    .status-danger .verdict-badge-icon { color: var(--color-danger); filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.2)); }
-    .status-danger .verdict-score-box { border-color: var(--color-danger-border); }
+
+    .status-danger .verdict-value {
+      color: var(--color-danger);
+    }
+
+    .status-danger .verdict-badge-icon {
+      color: var(--color-danger);
+      filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.2));
+    }
+
+    .status-danger .verdict-score-box {
+      border-color: var(--color-danger-border);
+    }
 
     /* Results Dashboard Grid */
     .results-grid {
@@ -726,10 +764,29 @@
       text-transform: uppercase;
     }
 
-    .card-badge.badge-green { background: rgba(16, 185, 129, 0.15); color: var(--color-safe); border: 1px solid rgba(16, 185, 129, 0.3); }
-    .card-badge.badge-yellow { background: rgba(245, 158, 11, 0.15); color: var(--color-suspicious); border: 1px solid rgba(245, 158, 11, 0.3); }
-    .card-badge.badge-red { background: rgba(239, 68, 68, 0.15); color: var(--color-danger); border: 1px solid rgba(239, 68, 68, 0.3); }
-    .card-badge.badge-muted { background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid rgba(255, 255, 255, 0.1); }
+    .card-badge.badge-green {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--color-safe);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .card-badge.badge-yellow {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--color-suspicious);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .card-badge.badge-red {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--color-danger);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .card-badge.badge-muted {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
 
     .card-body {
       display: flex;
@@ -895,7 +952,8 @@
       font-size: 0.85rem;
     }
 
-    .links-table th, .links-table td {
+    .links-table th,
+    .links-table td {
       padding: 0.75rem 1rem;
       border-bottom: 1px solid var(--border-color);
     }
@@ -1037,23 +1095,49 @@
        ANIMATIONS
        ---------------------------------------------------- */
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
 
     @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.08); opacity: 0.7; }
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.08);
+        opacity: 0.7;
+      }
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
     }
 
     @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
 
     /* ----------------------------------------------------
@@ -1086,61 +1170,72 @@
       .brand-title {
         font-size: 2rem;
       }
+
       .brand-logo {
         width: 2.8rem;
         height: 2.8rem;
       }
+
       .main-card {
         padding: 1.5rem;
       }
+
       .form-group-url {
         flex-direction: column;
       }
+
       .btn-submit {
         justify-content: center;
         width: 100%;
       }
+
       .verdict-banner {
         flex-direction: column;
         align-items: flex-start;
         padding: 1.25rem 1.5rem;
         gap: 1.25rem;
       }
+
       .verdict-score-box {
         width: 100%;
       }
     }
   </style>
 </head>
+
 <body>
 
   <div class="container">
-    
+
     <!-- BRAND HEADER -->
     <header>
       <a href="/" class="brand" aria-label="ShieldCheck Home">
-        <svg class="brand-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          <path d="m9 12 2 2 4-4"/>
+        <svg class="brand-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <path d="m9 12 2 2 4-4" />
         </svg>
         <span class="brand-title">ShieldCheck</span>
       </a>
-      <p class="brand-subtitle">Paste a suspicious URL or upload an email to verify security risks and spot potential phishing immediately.</p>
+      <p class="brand-subtitle">Paste a suspicious URL or upload an email to verify security risks and spot potential
+        phishing immediately.</p>
     </header>
 
     <!-- NAVIGATION TABS -->
     <nav class="tab-container" role="tablist">
       <button id="tab-url" class="tab-btn active" role="tab" aria-selected="true" aria-controls="pane-url">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
         </svg>
         Check a URL
       </button>
       <button id="tab-email" class="tab-btn" role="tab" aria-selected="false" aria-controls="pane-email">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-          <polyline points="22,6 12,13 2,6"/>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+          <polyline points="22,6 12,13 2,6" />
         </svg>
         Check an Email
       </button>
@@ -1149,10 +1244,11 @@
     <!-- ERROR NOTIFICATION BANNER -->
     <div id="error-banner" class="error-card" role="alert">
       <div class="error-header">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/>
-          <line x1="12" y1="8" x2="12" y2="12"/>
-          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round">
+          <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
         <span>Analysis Failure</span>
       </div>
@@ -1167,21 +1263,18 @@
            ==================================================== -->
       <section id="pane-url" class="view-section active" role="tabpanel" aria-labelledby="tab-url">
         <h2 class="section-title">URL Scanner</h2>
-        <p class="section-desc">Paste a web link below. We will analyze the domain age, SSL status, hosting attributes, URL structure, and run security reputation lookups.</p>
-        
+        <p class="section-desc">Paste a web link below. We will analyze the domain age, SSL status, hosting attributes,
+          URL structure, and run security reputation lookups.</p>
+
         <form id="form-url" onsubmit="handleUrlSubmit(event)">
           <div class="form-group-url">
-            <input 
-              type="text" 
-              id="input-url-value" 
-              class="input-url" 
-              placeholder="e.g., example-security-login.com/verify" 
-              aria-label="Suspicious link URL" 
-              required
-            >
+            <input type="text" id="input-url-value" class="input-url"
+              placeholder="e.g., example-security-login.com/verify" aria-label="Suspicious link URL" required>
             <button type="submit" id="btn-url-submit" class="btn-submit">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 1.2rem; height: 1.2rem;">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                stroke-linejoin="round" style="width: 1.2rem; height: 1.2rem;">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
               Scan URL
             </button>
@@ -1194,25 +1287,30 @@
            ==================================================== -->
       <section id="pane-email" class="view-section" role="tabpanel" aria-labelledby="tab-email">
         <h2 class="section-title">Email File Inspector</h2>
-        <p class="section-desc">Upload or drag in a saved email file (with a <code>.eml</code> extension) to parse headers for spoofing, verify DMARC/SPF parameters, check urgency indicators, scan attachments, and analyze embedded links.</p>
-        
+        <p class="section-desc">Upload or drag in a saved email file (with a <code>.eml</code> extension) to parse
+          headers for spoofing, verify DMARC/SPF parameters, check urgency indicators, scan attachments, and analyze
+          embedded links.</p>
+
         <div id="email-drop-zone" class="drag-zone" onclick="triggerEmailFilePicker()">
-          <svg class="drag-zone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
+          <svg class="drag-zone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
           </svg>
           <p class="drag-zone-title">Drag & drop your .eml file here</p>
           <p class="drag-zone-subtitle">or click anywhere to browse files</p>
-          <input type="file" id="email-file-input" style="display: none;" accept=".eml" onchange="handleEmailFileSelected(event)">
+          <input type="file" id="email-file-input" style="display: none;" accept=".eml"
+            onchange="handleEmailFileSelected(event)">
         </div>
 
         <!-- SELECTED FILE DETAILS PANEL -->
         <div id="file-card" class="file-details-card">
           <div class="file-info">
-            <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
+            <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
             </svg>
             <div>
               <div id="file-display-name" class="file-name">filename.eml</div>
@@ -1220,15 +1318,19 @@
             </div>
           </div>
           <button class="btn-clear-file" onclick="clearSelectedEmailFile(event)" aria-label="Remove selected file">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
 
-        <button id="btn-email-submit" class="btn-submit" style="width: 100%; justify-content: center;" onclick="handleEmailSubmit()" disabled>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 1.2rem; height: 1.2rem;">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <button id="btn-email-submit" class="btn-submit" style="width: 100%; justify-content: center;"
+          onclick="handleEmailSubmit()" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round" style="width: 1.2rem; height: 1.2rem;">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
           Analyze Email File
         </button>
@@ -1242,12 +1344,13 @@
           <div class="loader-ring-outer"></div>
           <div class="loader-ring-inner"></div>
           <svg class="loader-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
         </div>
         <h3 id="loader-status" class="loader-title">Initiating Forensic Engine...</h3>
-        <p class="loader-subtitle">Please wait, performing deep packet and register analysis (usually takes under 10 seconds).</p>
-        
+        <p class="loader-subtitle">Please wait, performing deep packet and register analysis (usually takes under 10
+          seconds).</p>
+
         <div class="loader-steps">
           <div class="loader-step-item id-step-1 active">
             <div class="loader-step-dot"></div>
@@ -1268,12 +1371,14 @@
            RESULTS PANEL
            ==================================================== -->
       <section id="pane-results" class="results-container">
-        
+
         <!-- Back Button Row -->
         <div class="results-action-bar">
           <button class="btn-back" onclick="resetFormState()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 1.1rem; height: 1.1rem;">
-              <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+              stroke-linejoin="round" style="width: 1.1rem; height: 1.1rem;">
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
             </svg>
             Scan Another Item
           </button>
@@ -1289,7 +1394,7 @@
               <span id="verdict-display-title" class="verdict-value">SAFE</span>
             </div>
           </div>
-          
+
           <div class="verdict-score-box">
             <div id="verdict-display-score" class="verdict-score-num">0</div>
             <div class="verdict-score-label">Risk Score</div>
@@ -1312,8 +1417,10 @@
       <div class="modal-header">
         <h3 class="modal-title">Embedded Link Scan Details</h3>
         <button class="btn-close-modal" onclick="toggleInspectModal(false)" aria-label="Close modal">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
       </div>
@@ -1325,8 +1432,10 @@
 
   <!-- FOOTER -->
   <footer>
-    <p>🛡️ ShieldCheck operates fully in memory. Uploaded files and scanned links are evaluated in real-time and never written to persistent disk databases.</p>
-    <p class="policy-disclaimer">Disclaimer: ShieldCheck offers risk assessments based on common cybersecurity heuristics and reputation API lookups. It is not an absolute certificate of guarantee.</p>
+    <p>🛡️ ShieldCheck operates fully in memory. Uploaded files and scanned links are evaluated in real-time and never
+      written to persistent disk databases.</p>
+    <p class="policy-disclaimer">Disclaimer: ShieldCheck offers risk assessments based on common cybersecurity
+      heuristics and reputation API lookups. It is not an absolute certificate of guarantee.</p>
   </footer>
 
   <!-- ====================================================
@@ -1354,7 +1463,7 @@
         tab.btn.classList.add('active');
         tab.btn.setAttribute('aria-selected', 'true');
         tab.pane.classList.add('active');
-        
+
         // Hide details & errors when swapping tabs
         document.getElementById('error-banner').style.display = 'none';
       });
@@ -1372,7 +1481,7 @@
 
       hideError();
       showLoader("Analyzing URL Details...");
-      
+
       try {
         const response = await fetch('/api/assess-url', {
           method: 'POST',
@@ -1441,14 +1550,14 @@
         showError("Invalid file type. Please upload a standard email .eml file.");
         return;
       }
-      
+
       hideError();
       selectedFile = file;
-      
+
       // Update metadata card
       document.getElementById('file-display-name').textContent = file.name;
       document.getElementById('file-display-size').textContent = formatBytes(file.size);
-      
+
       // Toggle visibility
       document.getElementById('file-card').style.display = 'flex';
       document.getElementById('btn-email-submit').removeAttribute('disabled');
@@ -1494,7 +1603,7 @@
     }
 
     // Helper string checker
-    String.prototype.endswith = function(suffix) {
+    String.prototype.endswith = function (suffix) {
       return this.indexOf(suffix, this.length - suffix.length) !== -1;
     };
 
@@ -1516,12 +1625,12 @@
       document.getElementById('pane-url').style.display = 'none';
       document.getElementById('pane-email').style.display = 'none';
       document.querySelector('.tab-container').style.display = 'none';
-      
+
       const loaderPane = document.getElementById('pane-loading');
       loaderPane.style.display = 'flex';
-      
+
       document.getElementById('loader-status').textContent = titleText;
-      
+
       // Animate steps
       const steps = [
         document.querySelector('.loader-steps .id-step-1'),
@@ -1614,7 +1723,7 @@
       // Use agent_score if available, fallback to basic score
       const finalScore = data.agent_score !== undefined ? data.agent_score : data.score;
       renderVerdictBanner(data.verdict, finalScore);
-      
+
       const grid = document.getElementById('results-details-layout');
       grid.innerHTML = ''; // reset previous result cards
 
@@ -1623,22 +1732,22 @@
         const agentCard = document.createElement('div');
         agentCard.className = 'detail-card';
         agentCard.style.gridColumn = '1 / -1'; // make it full width
-        
+
         let icon = '✅';
         if (data.decision === 'BLOCK') icon = '🚫';
         else if (data.decision === 'FLAG_FOR_REVIEW') icon = '⚠️';
         else if (data.decision === 'ESCALATE') icon = '🔺';
-        
+
         let contextHtml = '';
         if (data.context_notes && data.context_notes.length > 0) {
-            contextHtml = `<div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+          contextHtml = `<div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
                 <span style="color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transform: uppercase;">Context Flags:</span>
                 <ul style="margin-top: 0.5rem; padding-left: 1.5rem; color: var(--color-suspicious); font-size: 0.9rem;">
                     ${data.context_notes.map(note => `<li>${escapeHtml(note)}</li>`).join('')}
                 </ul>
             </div>`;
         }
-        
+
         agentCard.innerHTML = `
             <div class="card-header" style="border-bottom: none; margin-bottom: 0;">
               <h3 class="card-title">
@@ -1664,7 +1773,7 @@
           <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
         </svg>
       `);
-      
+
       const domainAgeText = data.age_days !== null ? `${data.age_days} days` : 'Unknown (Not registered)';
       let domainAgeBadge = 'badge-green';
       if (data.age_days !== null && data.age_days < 30) {
@@ -1739,7 +1848,7 @@
         const totalVendors = data.vt_result.malicious + data.vt_result.suspicious + data.vt_result.harmless + data.vt_result.undetected;
         const maliciousPct = totalVendors > 0 ? (data.vt_result.malicious / totalVendors) * 100 : 0;
         const harmlessPct = totalVendors > 0 ? ((data.vt_result.harmless + data.vt_result.undetected) / totalVendors) * 100 : 0;
-        
+
         let vtStatusBadge = 'badge-green';
         if (data.vt_result.malicious >= 5) {
           vtStatusBadge = 'badge-red';
@@ -1793,7 +1902,7 @@
     function renderEmailScanResults(data) {
       const finalScore = data.agent_score !== undefined ? data.agent_score : data.score;
       renderVerdictBanner(data.verdict, finalScore);
-      
+
       const grid = document.getElementById('results-details-layout');
       grid.innerHTML = ''; // reset previous result cards
 
@@ -1802,22 +1911,22 @@
         const agentCard = document.createElement('div');
         agentCard.className = 'detail-card';
         agentCard.style.gridColumn = '1 / -1'; // make it full width
-        
+
         let icon = '✅';
         if (data.decision === 'BLOCK') icon = '🚫';
         else if (data.decision === 'FLAG_FOR_REVIEW') icon = '⚠️';
         else if (data.decision === 'ESCALATE') icon = '🔺';
-        
+
         let contextHtml = '';
         if (data.context_notes && data.context_notes.length > 0) {
-            contextHtml = `<div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+          contextHtml = `<div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
                 <span style="color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transform: uppercase;">Context Flags:</span>
                 <ul style="margin-top: 0.5rem; padding-left: 1.5rem; color: var(--color-suspicious); font-size: 0.9rem;">
                     ${data.context_notes.map(note => `<li>${escapeHtml(note)}</li>`).join('')}
                 </ul>
             </div>`;
         }
-        
+
         agentCard.innerHTML = `
             <div class="card-header" style="border-bottom: none; margin-bottom: 0;">
               <h3 class="card-title">
@@ -1866,7 +1975,7 @@
           <path d="m9 12 2 2 4-4"/>
         </svg>
       `);
-      
+
       const spfClass = data.auth_results.spf === 'pass' ? 'pass' : (data.auth_results.spf === 'fail' ? 'fail' : 'none');
       const dkimClass = data.auth_results.dkim === 'pass' ? 'pass' : (data.auth_results.dkim === 'fail' ? 'fail' : 'none');
       const dmarcClass = data.auth_results.dmarc === 'pass' ? 'pass' : (data.auth_results.dmarc === 'fail' ? 'fail' : 'none');
@@ -1898,7 +2007,7 @@
           <line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
       `);
-      
+
       let flagsBodyHtml = '';
       if (data.notes && data.notes.length > 0) {
         flagsBodyHtml += '<ul class="notes-list">';
@@ -1952,7 +2061,7 @@
               </thead>
               <tbody>
         `;
-        
+
         data.url_results.forEach((urlRes, idx) => {
           let badgeColor = 'badge-green';
           let rowVerdict = urlRes.verdict.toUpperCase();
@@ -1988,7 +2097,7 @@
         `;
       }
       urlTableCard.querySelector('.card-body').innerHTML = tableHtml;
-      
+
       // Save url results globally to support modal clicks
       window.currentEmailUrlResults = data.url_results;
 
@@ -2026,7 +2135,7 @@
       // Render Title/Verdict inside modal
       const modVerdictBanner = document.createElement('div');
       modVerdictBanner.className = 'verdict-banner';
-      
+
       let statusClass = 'status-safe';
       let iconSvg = '';
       let displayVerdict = urlData.verdict.toUpperCase();
@@ -2062,12 +2171,12 @@
       const modalGrid = document.createElement('div');
       modalGrid.className = 'results-grid';
       modalGrid.style.gridTemplateColumns = '1fr';
-      
+
       // Add domain details card
       const domainCard = createDetailCard('Domain Identity', `
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
       `);
-      
+
       const domainAgeText = urlData.age_days !== null ? `${urlData.age_days} days` : 'Unknown (Not registered)';
       let domainAgeBadge = 'badge-green';
       if (urlData.age_days !== null && urlData.age_days < 30) {
@@ -2123,7 +2232,7 @@
         const vtCard = createDetailCard('VirusTotal Reputation', `
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         `);
-        
+
         const total = urlData.vt_result.malicious + urlData.vt_result.suspicious + urlData.vt_result.harmless + urlData.vt_result.undetected;
         const maliciousPct = total > 0 ? (urlData.vt_result.malicious / total) * 100 : 0;
         const harmlessPct = total > 0 ? ((urlData.vt_result.harmless + urlData.vt_result.undetected) / total) * 100 : 0;
@@ -2180,15 +2289,15 @@
     function resetFormState() {
       // Hide results
       document.getElementById('pane-results').style.display = 'none';
-      
+
       // Reset text inputs & files
       document.getElementById('input-url-value').value = '';
       clearSelectedEmailFile(null);
-      
+
       // Restore tab pane displays
       const activeTab = document.querySelector('.tab-btn.active');
       const activePaneId = activeTab.getAttribute('aria-controls');
-      
+
       document.querySelector('.tab-container').style.display = 'flex';
       tabs.forEach(t => {
         t.pane.style.display = ''; // Clear inline styles so class-based CSS works!
@@ -2198,7 +2307,7 @@
           t.pane.classList.remove('active');
         }
       });
-      
+
       hideError();
     }
 
@@ -2227,4 +2336,5 @@
     }
   </script>
 </body>
+
 </html>

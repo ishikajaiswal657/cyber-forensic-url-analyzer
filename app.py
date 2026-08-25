@@ -8,6 +8,13 @@ from dotenv import load_dotenv
 # Import the provided phishing analyzer logic
 from phishing_analyzer import analyze_url, analyze_email
 
+# Import the agentic decision layer (built on top of the analyzer above,
+# untouched) — adds ALLOW/FLAG_FOR_REVIEW/BLOCK/ESCALATE decisions,
+# fintech payment-impersonation context, and an audit-trail memory.
+from risk_agent import RiskAgent
+
+risk_agent = RiskAgent()
+
 # Load environment variables
 load_dotenv()
 
@@ -62,6 +69,33 @@ def check_url_endpoint():
     except Exception as e:
         return jsonify({"error": f"Internal server error occurred: {str(e)}"}), 500
 
+@app.route('/api/assess-url', methods=['POST'])
+def assess_url_endpoint():
+    """
+    Agentic version of /api/check-url. Accepts JSON containing a URL:
+    { "url": "https://example.com" }
+    Runs the same forensic analysis, then passes it through RiskAgent to
+    get a decision (ALLOW / FLAG_FOR_REVIEW / BLOCK / ESCALATE), a plain-
+    language explanation, and fintech-specific context (payment-flow
+    impersonation keywords, repeat-offender history from the audit log).
+    """
+    try:
+        data = request.get_json(silent=True)
+        if not data or 'url' not in data:
+            return jsonify({"error": "Invalid request. Missing 'url' field in JSON body."}), 400
+
+        url_to_scan = data['url'].strip()
+        if not url_to_scan:
+            return jsonify({"error": "The URL field cannot be empty."}), 400
+
+        raw_result = risk_agent.assess_url(url_to_scan)
+        result = json_serializable(raw_result)
+        return jsonify(result)
+
+    except Exception as e:
+        return jsonify({"error": f"Internal server error occurred: {str(e)}"}), 500
+
+
 @app.route('/api/check-email', methods=['POST'])
 def check_email_endpoint():
     """
@@ -103,6 +137,45 @@ def check_email_endpoint():
                 os.remove(temp_path)
             except Exception as err:
                 app.logger.error(f"Failed to delete temp file {temp_path}: {str(err)}")
+
+@app.route('/api/assess-email', methods=['POST'])
+def assess_email_endpoint():
+    """
+    Agentic version of /api/check-email. Accepts a multipart form submission
+    with file='foo.eml' containing EML bytes. Runs the same email analysis,
+    then passes it through RiskAgent for a decision + explanation, same as
+    /api/assess-url does for links.
+    """
+    if 'file' not in request.files:
+        return jsonify({"error": "Invalid request. No file part found in request."}), 400
+
+    uploaded_file = request.files['file']
+    if uploaded_file.filename == '':
+        return jsonify({"error": "No file selected. Please select a valid .eml file."}), 400
+
+    if not uploaded_file.filename.lower().endswith('.eml'):
+        return jsonify({"error": "Unsupported file format. Only .eml files are supported."}), 400
+
+    temp_path = None
+    try:
+        fd, temp_path = tempfile.mkstemp(suffix='.eml')
+        with os.fdopen(fd, 'wb') as tmp:
+            uploaded_file.save(tmp)
+
+        raw_result = risk_agent.assess_email(temp_path)
+        result = json_serializable(raw_result)
+        return jsonify(result)
+
+    except Exception as e:
+        return jsonify({"error": f"Internal server error occurred during email parse: {str(e)}"}), 500
+
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except Exception as err:
+                app.logger.error(f"Failed to delete temp file {temp_path}: {str(err)}")
+
 
 if __name__ == '__main__':
     # Render binds to PORT env variable, defaulting locally to 5000

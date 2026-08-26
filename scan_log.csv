@@ -1,0 +1,2 @@
+timestamp,type,identifier,domain,score,verdict,true_label
+2026-08-26T19:55:01.425284Z,url,https://test.com,test.com,3,SUSPICIOUS,

@@ -51,7 +51,14 @@ def has_ip(url):
     return 2 if re.search(ip_pattern, url) else 0
 
 def suspicious_keywords(url):
-    keywords = ["login", "verify", "bank", "update", "secure", "account", "kyc", "free", "gift"]
+    # "login" deliberately excluded: it's one of the most common words on
+    # any real authentication/SSO URL (e.g. Microsoft, Google, banks all
+    # use it legitimately), so on its own it's not a meaningful signal.
+    # The remaining terms are far less likely to appear on an innocent URL,
+    # and genuine phishing links almost always combine several of these
+    # anyway (e.g. "secure-login-verify-account"), so removing this one
+    # word doesn't reduce real detection — see phishing_analyzer tests.
+    keywords = ["verify", "bank", "update", "secure", "account", "kyc", "free", "gift"]
     for word in keywords:
         if word in url.lower():
             return 1
@@ -289,7 +296,7 @@ def analyze_url(url, verbose=True):
 
     if score >= 5:
         verdict = "HIGH RISK / PHISHING LIKELY"
-    elif score >= 3:
+    elif score >= 2:
         verdict = "SUSPICIOUS"
     else:
         verdict = "LIKELY SAFE"

@@ -289,7 +289,7 @@ def analyze_url(url, verbose=True):
 
     if score >= 5:
         verdict = "HIGH RISK / PHISHING LIKELY"
-    elif score >= 2:
+    elif score >= 3:
         verdict = "SUSPICIOUS"
     else:
         verdict = "LIKELY SAFE"
@@ -664,3 +664,4 @@ if __name__ == "__main__":
         # No flags given -> ask the user which single check they want,
         # instead of running both URL and email logic.
         run_interactive_menu()
+        
